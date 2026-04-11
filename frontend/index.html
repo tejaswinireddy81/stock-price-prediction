@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockPred AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="logo">STOCKPRED <span>AI</span></div>
+
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="switchMainTab('dashboard', this)">Dashboard</button>
+      <button class="nav-tab" onclick="switchMainTab('technical', this)">Technical Analysis</button>
+      <button class="nav-tab" onclick="switchMainTab('ml', this)">ML Models</button>
+      <button class="nav-tab" onclick="switchMainTab('prediction', this)">Prediction Engine</button>
+    </nav>
+
+    <div class="header-right">
+      <div class="ticker-select-wrap">
+        <select id="ticker">
+          <option value="AAPL">AAPL — Apple Inc.</option>
+          <option value="TSLA">TSLA — Tesla Inc.</option>
+          <option value="GOOGL">GOOGL — Alphabet</option>
+          <option value="MSFT">MSFT — Microsoft</option>
+          <option value="AMZN">AMZN — Amazon</option>
+          <option value="NVDA">NVDA — Nvidia</option>
+        </select>
+      </div>
+      <button id="trainBtn" onclick="runModel()">&#9654; RUN PREDICTION</button>
+      <span id="status" class="status">IDLE</span>
+      <div class="live-badge">
+        <span class="live-dot"></span> LIVE SIM
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Loader overlay ── -->
+  <div id="loader" class="loader hidden">
+    <div class="loader-card">
+      <div class="spinner"></div>
+      <p>Training LSTM model…</p>
+      <small>This takes about 1–2 minutes</small>
+    </div>
+  </div>
+
+  <!-- ── Dashboard Tab ── -->
+  <div id="tab-dashboard" class="main-tab">
+    <!-- Metric Cards -->
+    <div class="cards">
+      <div class="card">
+        <div class="label">CURRENT PRICE</div>
+        <div class="value mono" id="c-price">—</div>
+        <div class="sub-value" id="c-change">—</div>
+      </div>
+      <div class="card">
+        <div class="label">PREDICTED (7D)</div>
+        <div class="value mono green" id="c-forecast">—</div>
+        <div class="sub-value" id="c-confidence">Confidence: —</div>
+      </div>
+      <div class="card">
+        <div class="label">MODEL RMSE</div>
+        <div class="value mono cyan" id="c-rmse">—</div>
+        <div class="sub-value" id="c-model-name">LSTM Best Model</div>
+      </div>
+      <div class="card">
+        <div class="label">TREND SIGNAL</div>
+        <div class="value mono" id="c-signal">—</div>
+        <div class="sub-value" id="c-rsi-label">RSI: —</div>
+      </div>
+      <div class="card">
+        <div class="label">AVG VOLUME</div>
+        <div class="value mono" id="c-volume">—</div>
+        <div class="sub-value" id="c-vol-change">— avg</div>
+      </div>
+    </div>
+
+    <!-- Charts grid -->
+    <div class="charts-grid">
+      <!-- Price History + Prediction -->
+      <div class="chart-card large">
+        <div class="chart-header">
+          <span class="chart-title">PRICE HISTORY + PREDICTION</span>
+          <div class="chart-header-right">
+            <span class="chart-badge" id="price-ticker-badge">— · — DAYS</span>
+            <div class="period-btns">
+              <button class="period-btn active" onclick="setPeriod(30, this)">1M</button>
+              <button class="period-btn" onclick="setPeriod(60, this)">2M</button>
+              <button class="period-btn" onclick="setPeriod(90, this)">3M</button>
+            </div>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-box solid"></span> Historical</span>
+          <span class="legend-item"><span class="legend-box dashed"></span> Predicted</span>
+        </div>
+        <div class="chart-box" id="price-chart-box"><canvas id="priceChart"></canvas></div>
+        <div class="chart-empty-msg" id="price-empty">Select a ticker and run prediction to view chart data</div>
+      </div>
+
+      <!-- Volume Distribution -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title">VOLUME DISTRIBUTION</span>
+          <span class="chart-badge">LAST 30 SESSIONS</span>
+        </div>
+        <div class="chart-box" id="volume-chart-box"><canvas id="volumeChart"></canvas></div>
+        <div class="chart-empty-msg" id="volume-empty">Awaiting data…</div>
+      </div>
+
+      <!-- Indicators panel -->
+      <div class="chart-card indicators-card">
+        <div class="chart-header">
+          <span class="chart-title">INDICATORS</span>
+        </div>
+        <div id="ind-list" class="ind-list">
+          <div class="ind-row"><span class="ind-name">RSI (14)</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">MACD</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">SMA 20</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">SMA 50</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">BB Upper</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">BB Lower</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">Signal</span><span class="ind-val">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Technical Analysis Tab ── -->
+  <div id="tab-technical" class="main-tab hidden">
+    <div class="charts-grid">
+      <div class="chart-card large">
+        <div class="chart-header"><span class="chart-title">RSI (14)</span></div>
+        <div class="chart-box small"><canvas id="rsiChart"></canvas></div>
+        <div class="chart-empty-msg" id="rsi-empty">Run prediction to view RSI</div>
+      </div>
+      <div class="chart-card large">
+        <div class="chart-header"><span class="chart-title">MACD</span></div>
+        <div class="chart-box small"><canvas id="macdChart"></canvas></div>
+        <div class="chart-empty-msg" id="macd-empty">Run prediction to view MACD</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ML Models Tab ── -->
+  <div id="tab-ml" class="main-tab hidden">
+    <div class="charts-grid">
+      <div class="chart-card large">
+        <div class="chart-header"><span class="chart-title">ACTUAL VS PREDICTED (TEST SET)</span></div>
+        <div class="chart-box"><canvas id="lstmChart"></canvas></div>
+        <div class="chart-empty-msg" id="lstm-empty">Run prediction to view LSTM results</div>
+      </div>
+      <div class="chart-card indicators-card">
+        <div class="chart-header"><span class="chart-title">MODEL METRICS</span></div>
+        <div id="metrics-list" class="ind-list">
+          <div class="ind-row"><span class="ind-name">RMSE</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">MAE</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">Directional Acc.</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">Model</span><span class="ind-val blue">LSTM</span></div>
+          <div class="ind-row"><span class="ind-name">Window</span><span class="ind-val">60 days</span></div>
+          <div class="ind-row"><span class="ind-name">Train / Test</span><span class="ind-val">80% / 20%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Prediction Engine Tab ── -->
+  <div id="tab-prediction" class="main-tab hidden">
+    <div class="charts-grid">
+      <div class="chart-card large">
+        <div class="chart-header"><span class="chart-title">7-DAY PRICE FORECAST</span></div>
+        <div class="chart-box"><canvas id="forecastChart"></canvas></div>
+        <div class="chart-empty-msg" id="forecast-empty">Run prediction to view forecast</div>
+      </div>
+      <div class="chart-card indicators-card">
+        <div class="chart-header"><span class="chart-title">DAY-BY-DAY FORECAST</span></div>
+        <div id="forecast-list" class="ind-list">
+          <div class="ind-row"><span class="ind-name">Day 1 (Mon)</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">Day 2 (Tue)</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">Day 3 (Wed)</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">Day 4 (Thu)</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">Day 5 (Fri)</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">Day 6 (Mon)</span><span class="ind-val">—</span></div>
+          <div class="ind-row"><span class="ind-name">Day 7 (Tue)</span><span class="ind-val">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
