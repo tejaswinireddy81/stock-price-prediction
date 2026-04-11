@@ -33,8 +33,16 @@ python app.py
 1. Select a stock ticker (AAPL, TSLA, GOOGL…)
 2. Click **▶ Run Prediction**
 3. Wait ~1–2 minutes for LSTM to train
-4. View results across 4 tabs:
-      Dashboard
-      Technical Analysis
-      ML Models
-      Prediction Engine
+4. View results across 4 powerful modules:
+
+- **Dashboard**  
+  Displays current price, predicted price, model performance (RMSE), and overall trend signal along with an interactive price chart.
+
+- **Technical Analysis**  
+  Includes key indicators such as RSI, MACD  for market trend evaluation.
+
+- **ML Models**  
+  Shows LSTM model results with actual vs predicted price comparison and performance metrics.
+
+- **Prediction Engine**  
+  Generates future stock price forecasts (7-day prediction) based on trained machine learning models.
