@@ -34,7 +34,7 @@ python app.py
 2. Click **▶ Run Prediction**
 3. Wait ~1–2 minutes for LSTM to train
 4. View results across 4 tabs:
-   - **Price Chart** — historical prices + SMA 20
-   - **LSTM Results** — actual vs predicted
-   - **Indicators** — RSI and MACD charts
-   - **Forecast** — 7-day price prediction
+      Dashboard
+      Technical Analysis
+      ML Models
+      Prediction Engine
