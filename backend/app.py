@@ -35,4 +35,4 @@ if __name__ == '__main__':
     print("  StockPred AI  —  http://localhost:5000")
     print("  Live data via Yahoo Finance (yfinance)")
     print("=" * 45)
-    app.run(debug=True, port=5000)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
